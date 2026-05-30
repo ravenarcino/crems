@@ -18,6 +18,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
+        // Check if it's the testing account first
+        if (
+          process.env.TEST_EMAIL &&
+          process.env.TEST_PASSWORD &&
+          credentials.email === process.env.TEST_EMAIL &&
+          credentials.password === process.env.TEST_PASSWORD
+        ) {
+          // Return testing user (no database needed)
+          return {
+            id: "test-user-123",
+            email: process.env.TEST_EMAIL,
+            name: "Test User",
+            role: "ADMIN",
+          };
+        }
+
         // Find user in database
         const user = await prisma.user.findUnique({
           where: { email: credentials.email as string },

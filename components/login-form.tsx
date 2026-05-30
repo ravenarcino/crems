@@ -27,15 +27,13 @@ export function LoginForm({
   const [loading, setLoading] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotSuccess, setForgotSuccess] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleLoginSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
-
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
 
     const result = await signIn("credentials", {
       email,
@@ -50,6 +48,11 @@ export function LoginForm({
     } else {
       router.push("/admin/dashboard");
     }
+  };
+
+  const handleFillTestCredentials = () => {
+    setEmail("test@crems.com");
+    setPassword("Test1234!");
   };
 
   const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
@@ -98,7 +101,9 @@ export function LoginForm({
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="m@example.com"
+                    placeholder="test@crems.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </Field>
@@ -113,16 +118,45 @@ export function LoginForm({
                       Forgot your password?
                     </button>
                   </div>
-                  <Input id="password" name="password" type="password" required />
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    placeholder="Test1234!"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
                 </Field>
                 {error && (
                   <div className="text-red-500 text-sm">{error}</div>
                 )}
                 <Field>
-                  <Button type="submit" disabled={loading}>
+                  <Button type="submit" disabled={loading} className="w-full">
                     {loading ? "Logging in..." : "Login"}
                   </Button>
                 </Field>
+                <div className="relative my-2">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                      Or use test account
+                    </span>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handleFillTestCredentials}
+                  className="w-full"
+                >
+                  Fill Test Credentials
+                </Button>
+                <p className="text-xs text-center text-muted-foreground mt-2">
+                  Test Email: test@crems.com | Test Password: Test1234!
+                </p>
               </FieldGroup>
             </form>
           ) : (
@@ -157,7 +191,7 @@ export function LoginForm({
                       <div className="text-red-500 text-sm">{error}</div>
                     )}
                     <div className="flex flex-col gap-2">
-                      <Button type="submit" disabled={loading}>
+                      <Button type="submit" disabled={loading} className="w-full">
                         {loading ? "Sending..." : "Send Reset Link"}
                       </Button>
                       <Button
@@ -168,6 +202,7 @@ export function LoginForm({
                           setError(null);
                           setForgotEmail("");
                         }}
+                        className="w-full"
                       >
                         Back to Login
                       </Button>
@@ -184,6 +219,7 @@ export function LoginForm({
                       setForgotEmail("");
                       setError(null);
                     }}
+                    className="w-full"
                   >
                     Back to Login
                   </Button>
