@@ -14,7 +14,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
+        console.log("=== Authorize function called ===");
+        console.log("Credentials email:", credentials?.email);
+        console.log("TEST_EMAIL env var:", process.env.TEST_EMAIL ? "exists" : "missing");
+        console.log("TEST_PASSWORD env var:", process.env.TEST_PASSWORD ? "exists" : "missing");
+        
         if (!credentials?.email || !credentials?.password) {
+          console.log("Missing email or password");
           return null;
         }
 
@@ -25,6 +31,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           credentials.email === process.env.TEST_EMAIL &&
           credentials.password === process.env.TEST_PASSWORD
         ) {
+          console.log("Test account login successful!");
           // Return testing user (no database needed)
           return {
             id: "test-user-123",
@@ -34,32 +41,41 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           };
         }
 
-        // Find user in database
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email as string },
-        });
+        console.log("Not test account, checking database...");
+        try {
+          // Find user in database
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email as string },
+          });
 
-        if (!user || !user.password) {
+          if (!user || !user.password) {
+            console.log("User not found or missing password");
+            return null;
+          }
+
+          // Check password
+          const passwordMatch = await bcrypt.compare(
+            credentials.password as string,
+            user.password
+          );
+
+          if (!passwordMatch) {
+            console.log("Password mismatch");
+            return null;
+          }
+
+          console.log("Database user login successful!");
+          // Return user object without password
+          return {
+            id: user.user_id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+          };
+        } catch (dbError) {
+          console.error("Database error during login:", dbError);
           return null;
         }
-
-        // Check password
-        const passwordMatch = await bcrypt.compare(
-          credentials.password as string,
-          user.password
-        );
-
-        if (!passwordMatch) {
-          return null;
-        }
-
-        // Return user object without password
-        return {
-          id: user.user_id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-        };
       },
     }),
   ],
