@@ -1,0 +1,137 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+//Users
+model User {
+  id                Int                @id @default(autoincrement())
+  user_id           String             @unique
+  name              String
+  email             String             @unique
+  password          String
+  role              UserRole           @default(ADMIN)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  deletedAt         DateTime?
+  passwordResetTokens PasswordResetToken[]
+}
+
+model PasswordResetToken {
+  id        Int       @id @default(autoincrement())
+  token     String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [user_id])
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  usedAt    DateTime?
+}
+
+enum UserRole {
+  ADMIN
+}
+
+//Property
+model Property {
+  id               Int               @id @default(autoincrement())
+  property_id      String            @unique
+  property_name    String
+  building_name    String
+  area             Float
+  rent_fee         Decimal
+  goodwill_fee     Decimal
+  status           PropertyStatus    @default(AVAILABLE)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  deletedAt        DateTime?
+  rentedProperties Rented_Property[]
+}
+
+enum PropertyStatus {
+  AVAILABLE
+  OCCUPIED
+}
+
+//Tenants
+model Tenant {
+  id               Int               @id @default(autoincrement())
+  tenant_id        String            @unique
+  name             String
+  email            String
+  phone            String
+  address          String
+  status           TenantStatus      @default(PAID)
+  total_monthly_rent     Decimal?   
+  total_goodwill_fee     Decimal?        
+  surcharge        Decimal?
+  interest         Decimal?
+  dueDate          Int?
+  balance          Decimal           @default(0)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  deletedAt        DateTime?
+  rentedProperties Rented_Property[]
+  payments         Payments[]
+}
+
+enum TenantStatus {
+  PAID
+  PARTIAL
+  DELINQUENT
+}
+
+//Rented Property
+model Rented_Property {
+  id            Int       @id @default(autoincrement())
+  tenantId      String
+  propertyId    String
+  building_name String
+  business_name String
+  business_type String
+  rent_fee      Decimal
+  goodwill_fee  Decimal
+  effectiveDate DateTime  @default(now())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  endoAt        DateTime?
+  deletedAt     DateTime?
+  tenant        Tenant    @relation(fields: [tenantId], references: [tenant_id])
+  property      Property  @relation(fields: [propertyId], references: [property_id])
+}
+
+//Payments
+model Payments {
+  id                Int        @id @default(autoincrement())
+  ticketId          String     @unique
+  tenantId          String
+  month             String
+  year              Int
+  surchargePercent  Decimal?
+  interestPercent   Decimal?
+  surchargeAmount   Decimal?
+  interestAmount    Decimal?
+  amount            Decimal
+  paidDate          DateTime?
+  status            BillStatus @default(PARTIAL)
+  expectedMonthlyRent Decimal?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  deletedAt         DateTime?
+  tenant            Tenant     @relation(fields: [tenantId], references: [tenant_id])
+}
+
+enum BillStatus {
+  PAID
+  UNPAID
+  OVERDUE
+  PARTIAL
+}
