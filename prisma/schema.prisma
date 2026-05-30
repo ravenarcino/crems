@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -12,17 +7,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-//Users
 model User {
-  id                Int                @id @default(autoincrement())
-  user_id           String             @unique
-  name              String
-  email             String             @unique
-  password          String
-  role              UserRole           @default(ADMIN)
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  deletedAt         DateTime?
+  id                  Int                  @id @default(autoincrement())
+  user_id             String               @unique
+  name                String
+  email               String               @unique
+  password            String
+  role                UserRole             @default(ADMIN)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  deletedAt           DateTime?
   passwordResetTokens PasswordResetToken[]
 }
 
@@ -30,17 +24,12 @@ model PasswordResetToken {
   id        Int       @id @default(autoincrement())
   token     String    @unique
   userId    String
-  user      User      @relation(fields: [userId], references: [user_id])
   expiresAt DateTime
   createdAt DateTime  @default(now())
   usedAt    DateTime?
+  user      User      @relation(fields: [userId], references: [user_id])
 }
 
-enum UserRole {
-  ADMIN
-}
-
-//Property
 model Property {
   id               Int               @id @default(autoincrement())
   property_id      String            @unique
@@ -56,40 +45,27 @@ model Property {
   rentedProperties Rented_Property[]
 }
 
-enum PropertyStatus {
-  AVAILABLE
-  OCCUPIED
-}
-
-//Tenants
 model Tenant {
-  id               Int               @id @default(autoincrement())
-  tenant_id        String            @unique
-  name             String
-  email            String
-  phone            String
-  address          String
-  status           TenantStatus      @default(PAID)
-  total_monthly_rent     Decimal?   
-  total_goodwill_fee     Decimal?        
-  surcharge        Decimal?
-  interest         Decimal?
-  dueDate          Int?
-  balance          Decimal           @default(0)
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  deletedAt        DateTime?
-  rentedProperties Rented_Property[]
-  payments         Payments[]
+  id                 Int               @id @default(autoincrement())
+  tenant_id          String            @unique
+  name               String
+  email              String
+  phone              String
+  address            String
+  status             TenantStatus      @default(PAID)
+  total_monthly_rent Decimal?
+  total_goodwill_fee Decimal?
+  surcharge          Decimal?
+  interest           Decimal?
+  dueDate            Int?
+  balance            Decimal           @default(0)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  deletedAt          DateTime?
+  payments           Payments[]
+  rentedProperties   Rented_Property[]
 }
 
-enum TenantStatus {
-  PAID
-  PARTIAL
-  DELINQUENT
-}
-
-//Rented Property
 model Rented_Property {
   id            Int       @id @default(autoincrement())
   tenantId      String
@@ -104,29 +80,43 @@ model Rented_Property {
   updatedAt     DateTime  @updatedAt
   endoAt        DateTime?
   deletedAt     DateTime?
-  tenant        Tenant    @relation(fields: [tenantId], references: [tenant_id])
   property      Property  @relation(fields: [propertyId], references: [property_id])
+  tenant        Tenant    @relation(fields: [tenantId], references: [tenant_id])
 }
 
-//Payments
 model Payments {
-  id                Int        @id @default(autoincrement())
-  ticketId          String     @unique
-  tenantId          String
-  month             String
-  year              Int
-  surchargePercent  Decimal?
-  interestPercent   Decimal?
-  surchargeAmount   Decimal?
-  interestAmount    Decimal?
-  amount            Decimal
-  paidDate          DateTime?
-  status            BillStatus @default(PARTIAL)
+  id                  Int        @id @default(autoincrement())
+  ticketId            String     @unique
+  tenantId            String
+  month               String
+  year                Int
+  surchargePercent    Decimal?
+  interestPercent     Decimal?
+  surchargeAmount     Decimal?
+  interestAmount      Decimal?
+  amount              Decimal
+  paidDate            DateTime?
+  status              BillStatus @default(PARTIAL)
   expectedMonthlyRent Decimal?
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
-  deletedAt         DateTime?
-  tenant            Tenant     @relation(fields: [tenantId], references: [tenant_id])
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+  deletedAt           DateTime?
+  tenant              Tenant     @relation(fields: [tenantId], references: [tenant_id])
+}
+
+enum UserRole {
+  ADMIN
+}
+
+enum PropertyStatus {
+  AVAILABLE
+  OCCUPIED
+}
+
+enum TenantStatus {
+  PAID
+  PARTIAL
+  DELINQUENT
 }
 
 enum BillStatus {
